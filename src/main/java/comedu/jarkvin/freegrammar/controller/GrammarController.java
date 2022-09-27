@@ -7,8 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.websocket.server.PathParam;
-import java.util.ArrayList;
+import javax.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -19,7 +18,7 @@ public class GrammarController {
     private GrammarService service;
 
     @PostMapping("/strings/{n}")
-    public ResponseEntity<List<String>> getStrings(@PathVariable Integer n , @RequestBody Grammar grammar){
+    public ResponseEntity<List<String>> getStrings(@PathVariable Integer n ,@Valid @RequestBody Grammar grammar){
         return new ResponseEntity<>(service.generateStrings(n, grammar), HttpStatus.CREATED);
     }
 }

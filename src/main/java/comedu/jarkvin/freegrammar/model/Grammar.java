@@ -1,10 +1,14 @@
 package comedu.jarkvin.freegrammar.model;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import java.util.List;
 import java.util.Objects;
 
 public class Grammar {
+    @NotBlank(message = "La variable inicial no puede estar vacía.")
     private String initVar;
+    @NotEmpty(message = "Las reglas no puede estar vacías.")
     private List<Rule> rules;
 
     public Grammar() {
