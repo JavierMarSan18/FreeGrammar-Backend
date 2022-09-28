@@ -21,10 +21,11 @@ public class GrammarServiceImpl implements GrammarService{
         Set<String> generatedStrings = new HashSet<>();
         String concatString;
 
+        //Obtener el tiempo actual
         long startTime = System.currentTimeMillis();
 
         //Itera hasta generar 'n' cadenas diferentes.
-        do {
+        while (generatedStrings.size() < quantity){
             concatString = getInitialString(grammar.getInitVar(), grammar.getRules());
 
             //Verifica si existe un no terminal en la cadena.
@@ -35,10 +36,9 @@ public class GrammarServiceImpl implements GrammarService{
                 //Si se alcanza el tiempo máximo por consulta lanza un timeout.
                 if((System.currentTimeMillis() - startTime) >= MAX_TIME_IN_MILLS) throw new TimeOutException(TIMEOUT_EXCEPTION);
             }
-
             concatString = replaceVoid(concatString);
             generatedStrings.add(concatString);
-        }while (generatedStrings.size() < quantity);
+        }
 
 
         return toListAndSort(generatedStrings);
@@ -69,7 +69,7 @@ public class GrammarServiceImpl implements GrammarService{
     //Devuelve un regla asociada a una variable.
     private String getString(String str, List<Rule> rules) {
         Rule rule = rules.get(getRandomValue(rules.size()));
-        str = str.replace(rule.getVariable(), rule.getString());
+        str = str.replaceFirst(rule.getVariable(), rule.getString());
         return str;
     }
 
