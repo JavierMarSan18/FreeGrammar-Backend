@@ -32,14 +32,13 @@ public class GrammarServiceImpl implements GrammarService{
             //Si existe lo reemplaza por una regla.
             while (existsNoTerminal(concatString, grammar.getRules())){
                 concatString = getString(concatString, findRulesByString(concatString, grammar.getRules()));
-
-                //Si se alcanza el tiempo máximo por consulta lanza un timeout.
+                //Si se alcanza el tiempo máximo por consulta lanza un timeout.;
                 if((System.currentTimeMillis() - startTime) >= MAX_TIME_IN_MILLS) throw new TimeOutException(TIMEOUT_EXCEPTION);
             }
+
             concatString = replaceVoid(concatString);
             generatedStrings.add(concatString);
         }
-
 
         return toListAndSort(generatedStrings);
     }
@@ -74,7 +73,6 @@ public class GrammarServiceImpl implements GrammarService{
     }
 
     //Devuelve todas las reglas asociadas a una variable no terminal.
-
     private List<Rule> getRules(String variable, List<Rule> rules) {
         return rules.stream().filter(r -> variable.equals(r.getVariable())).toList();
     }
