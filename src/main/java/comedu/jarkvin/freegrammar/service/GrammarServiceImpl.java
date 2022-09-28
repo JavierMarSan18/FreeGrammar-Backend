@@ -23,7 +23,11 @@ public class GrammarServiceImpl implements GrammarService{
         //Obtener el tiempo actual
         long startTime = System.currentTimeMillis();
 
-       grammar.setRules(trimRulesByOr(grammar.getRules()));
+        //Se valida que todas las reglas tengan el formato correcto
+        grammar.getRules().forEach(r -> isValid(r.getString()));
+        //Corta las reglas que contengan OR (S --> aAb|aAc = S --> aAb, S --> aAc)
+        grammar.setRules(trimRulesByOr(grammar.getRules()));
+
         //Itera hasta generar 'n' cadenas diferentes.
         while (generatedStrings.size() < quantity){
             concatString = getInitialString(grammar.getInitVar(), grammar.getRules());
@@ -43,14 +47,30 @@ public class GrammarServiceImpl implements GrammarService{
         return toListAndSort(generatedStrings);
     }
 
+    //Convierte el set en una lista y la ordena.
+    private List<String> toListAndSort(Set<String> set) {
+        List<String> list = new ArrayList<>(set.stream().toList());
+        list.sort(Collections.reverseOrder());
+        return list;
+    }
+
+    //Devuelve una regla aleatoria asociada a una variable inicial.
+    private String getInitialString(String variable, List<Rule> rules) {
+        if(!existsInitVar(variable, rules)){
+            throw new BadRequestException("La variable inicial no existe en las reglas.");
+        }
+        List<Rule> initialRules = getRules(variable, rules);
+        Rule rule = initialRules.get(getRandomValue(initialRules.size()));
+
+        return isValid(rule.getString());
+    }
+
     //Corta las reglas que contengan OR (S --> aAb|aAc = S --> aAb, S --> aAc)
     private List<Rule> trimRulesByOr(List<Rule> rules) {
+        List<Rule> rulesWithOr;
+        Rule ruleWithOr;
         String left;
         String right;
-
-        List<Rule> rulesWithOr;
-
-        Rule ruleWithOr;
 
         while (rules.stream().anyMatch(r -> r.getString().contains("|"))){
             //Se filtran todas las reglas que contengan OR.
@@ -76,31 +96,10 @@ public class GrammarServiceImpl implements GrammarService{
             rules.add(trimmedRuleRight);
             rules.remove(ruleWithOr);
         }
+
+        rules.forEach(System.out::println);
+
         return rules;
-    }
-
-    //Convierte el set en una lista y la ordena.
-    private List<String> toListAndSort(Set<String> set) {
-        List<String> list = new ArrayList<>(set.stream().toList());
-        list.sort(Collections.reverseOrder());
-        return list;
-    }
-
-    //Devuelve una regla aleatoria asociada a una variable inicial.
-    private String getInitialString(String variable, List<Rule> rules) {
-        if(!existsInitVar(variable, rules)){
-            throw new BadRequestException("La variable inicial no existe en las reglas.");
-        }
-        List<Rule> initialRules = getRules(variable, rules);
-        Rule rule = initialRules.get(getRandomValue(initialRules.size()));
-
-        if (!isValid(rule.getString())){
-            throw new BadRequestException("El formato de '"+rule.getString()+"' no es soportado.");
-        }
-
-
-
-        return rule.getString();
     }
 
     //Verifica si la variable inicial existe en las reglas
@@ -112,7 +111,7 @@ public class GrammarServiceImpl implements GrammarService{
     private String getString(String str, List<Rule> rules) {
         Rule rule = rules.get(getRandomValue(rules.size()));
         str = str.replaceFirst(rule.getVariable(), rule.getString());
-        return str;
+        return isValid(str);
     }
 
     //Devuelve todas las reglas asociadas a una variable no terminal.
@@ -145,8 +144,10 @@ public class GrammarServiceImpl implements GrammarService{
 
     //Elimina el primero y último caracter indicado.
     private String trimByChar(String str, String s) {
+        int minLength = 2;
+
         //Valida si la longitud de la cadena es mayor a 2 y si contiene a s.
-        if(str.length() > 2 && str.contains(s)){
+        if(str.length() > minLength && str.contains(s)){
             //Valida si la cadena comienza con s y recorta
             if(str.substring(0, 1).equals(s)){
                 str = str.substring(1);
@@ -159,13 +160,13 @@ public class GrammarServiceImpl implements GrammarService{
         return str;
     }
     //Verificar si la cadena es válida.
-    private boolean isValid(String str) {
+    private String isValid(String str) {
         if(!str.equals(trimByChar(str,"|"))){
-            return false;
+            throw new BadRequestException("El formato de '"+str+"' no es soportado.");
         }
         if (str.equals("")){
-            return false;
+            throw new BadRequestException("La regla no puede estar vacía.");
         }
-        return true;
+        return str;
     }
 }
