@@ -154,7 +154,7 @@ public class GrammarServiceImpl implements GrammarService{
             if(str.substring(0, 1).equals(s)){
                 str = str.substring(1);
             }
-//            //Valida si la cadena termina con s y recorta
+//            //Valida si la cadena termina con s y recorta.
             if(str.substring(str.length()-1).equals(s)){
                 str = str.substring(0, str.length() - 1);
             }
