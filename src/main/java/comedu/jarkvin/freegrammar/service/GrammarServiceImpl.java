@@ -7,6 +7,7 @@ import comedu.jarkvin.freegrammar.model.Rule;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.logging.Logger;
 
 @Service
 public class GrammarServiceImpl implements GrammarService{
@@ -97,7 +98,8 @@ public class GrammarServiceImpl implements GrammarService{
             rules.remove(ruleWithOr);
         }
 
-        rules.forEach(System.out::println);
+        Logger logger = Logger.getLogger("rule");
+        rules.forEach(r -> logger.info(r.toString()));
 
         return rules;
     }
