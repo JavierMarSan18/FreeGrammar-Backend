@@ -21,7 +21,7 @@ public class ControllerAdvice {
     public ResponseEntity<Message> outOfMemoryError(OutOfMemoryError e){
         message.setSubject("Máximo de memoria alcanzado.");
         message.setDate(LocalDate.now());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(message);
+        return ResponseEntity.status(HttpStatus.INSUFFICIENT_STORAGE).body(message);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
@@ -49,7 +49,7 @@ public class ControllerAdvice {
     public ResponseEntity<Message> timeOutException(TimeOutException e){
         message.setSubject(e.getMessage());
         message.setDate(LocalDate.now());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        return ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT).body(message);
     }
 
     @ExceptionHandler(InvalidBoundException.class)
