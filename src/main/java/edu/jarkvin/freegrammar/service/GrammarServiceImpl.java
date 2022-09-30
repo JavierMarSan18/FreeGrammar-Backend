@@ -95,8 +95,8 @@ public class GrammarServiceImpl implements GrammarService{
             rules.remove(ruleWithOr);
         }
 
-        Logger logger = Logger.getLogger("rule");
-        rules.forEach(r -> logger.info(r.toString()));
+//        Logger logger = Logger.getLogger("rule");
+//        rules.forEach(r -> logger.info(r.toString()));
 
         return rules;
     }
