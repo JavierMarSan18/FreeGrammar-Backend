@@ -1,7 +1,5 @@
 package edu.jarkvin.freegrammar.util;
 
-import java.util.Random;
-
 public class StringUtils {
 
     private StringUtils(){
