@@ -42,6 +42,12 @@ public class Grammar {
         this.rules.add(rule);
     }
 
+    public void addIfExists(Rule rule){
+        if (!rules.contains(rule)){
+            rules.add(rule);
+        }
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

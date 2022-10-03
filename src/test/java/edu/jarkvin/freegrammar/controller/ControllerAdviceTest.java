@@ -14,6 +14,8 @@ import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.*;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.lang.reflect.Method;
@@ -39,6 +41,48 @@ public class ControllerAdviceTest {
         message.setDate(LocalDate.now());
         ResponseEntity<Message> response = new ResponseEntity<>(message, HttpStatus.INSUFFICIENT_STORAGE);
         Assert.assertEquals(response, controller.outOfMemoryError(new OutOfMemoryError()));
+    }
+
+    @Test
+    public void methodArgumentNotValidException_WhenInitVarIsBlank_Test() throws NoSuchMethodException {
+        message.setSubject("La variable inicial no puede estar vacía.");
+        message.setDate(LocalDate.now());
+        //Se obtiene el método getStrings desde grammarController
+        Method method = grammarController.getClass().getMethod("getStrings", Integer.class, Grammar.class);
+        //Se obtiene el parámetro del método.
+        MethodParameter methodParameter = new MethodParameter(method,0);
+
+        //Se construye un bindingResult para comparar los errores.
+        BindingResult bindingResult = new BeanPropertyBindingResult("", "");
+        ObjectError objectError = new ObjectError("",null,null,"La variable inicial no puede estar vacía.");
+        bindingResult.addError(objectError);
+
+        //Se crea la excepción.
+        MethodArgumentNotValidException exception = new MethodArgumentNotValidException(methodParameter, bindingResult);
+
+        ResponseEntity<Message> response = new ResponseEntity<>(message, HttpStatus.BAD_REQUEST);
+        Assert.assertEquals(response, controller.methodArgumentNotValidException(exception));
+    }
+
+    @Test
+    public void methodArgumentNotValidException_WhenRulesAreEmpty_Test() throws NoSuchMethodException {
+        message.setSubject("Las reglas no puede estar vacías.");
+        message.setDate(LocalDate.now());
+        //Se obtiene el método getStrings desde grammarController
+        Method method = grammarController.getClass().getMethod("getStrings", Integer.class, Grammar.class);
+        //Se obtiene el parámetro del método.
+        MethodParameter methodParameter = new MethodParameter(method,1);
+
+        //Se construye un bindingResult para comparar los errores.
+        BindingResult bindingResult = new BeanPropertyBindingResult("", "");
+        ObjectError objectError = new ObjectError("",null,null,"Las reglas no puede estar vacías.");
+        bindingResult.addError(objectError);
+
+        //Se crea la excepción.
+        MethodArgumentNotValidException exception = new MethodArgumentNotValidException(methodParameter, bindingResult);
+
+        ResponseEntity<Message> response = new ResponseEntity<>(message, HttpStatus.BAD_REQUEST);
+        Assert.assertEquals(response, controller.methodArgumentNotValidException(exception));
     }
 
     @Test
