@@ -7,6 +7,7 @@ import edu.jarkvin.freegrammar.model.Message;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -24,6 +25,12 @@ public class ControllerAdvice {
         return ResponseEntity.status(HttpStatus.INSUFFICIENT_STORAGE).body(message);
     }
 
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Message> methodArgumentNotValidException(MethodArgumentNotValidException e){
+        message.setSubject(e.getAllErrors().get(0).getDefaultMessage());
+        message.setDate(LocalDate.now());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+    }
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<Message> httpMessageNotReadableException(HttpMessageNotReadableException e){
         message.setSubject("El formato de la solicitud no es soportado.");

@@ -4,6 +4,7 @@ import edu.jarkvin.freegrammar.model.Grammar;
 import edu.jarkvin.freegrammar.exception.TimeOutException;
 import edu.jarkvin.freegrammar.model.Rule;
 
+import edu.jarkvin.freegrammar.util.ListUtil;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -16,16 +17,21 @@ public class GrammarServiceImpl implements GrammarService{
     private Long startTime;
     private static final long MAX_TIME_IN_MILLS = 50000;
     private static final String TIMEOUT_EXCEPTION = "La petición ha tardado demasiado tiempo.";
+    private final ListUtil<Rule> listUtil = new ListUtil<>();
 
     //Genera n cadenas dependiendo de las reglas que se proporcionen.
     @Override
     public List<String> generateStrings(Integer quantity, Grammar grammar) {
         Set<String> generatedStrings = new HashSet<>();
         String concatString;
+        //Si la cantidad es nula o menor a 0, por defecto se retornara 1 cadena.
+        quantity = quantity != null && quantity > 0 ? quantity: 1;
 
         //Obtener el tiempo actual en milisegundos.
         startTime = System.currentTimeMillis();
 
+        //Se eliminan las reglas repetidas
+        grammar.setRules(listUtil.removeRepeatedItems(grammar.getRules()));
         //Se valida que todas las reglas tengan el formato correcto
         grammar.getRules().forEach(r -> isValid(r.getString()));
         //Corta las reglas que contengan OR (S --> aAb|aAc = S --> aAb, S --> aAc)
@@ -41,6 +47,7 @@ public class GrammarServiceImpl implements GrammarService{
     }
 
     //Se obtiene una cadena a partir de la gramática
+
     private String getStringFromGrammar(Grammar grammar) {
         String concatString = getInitialString(grammar.getInitVar(), grammar.getRules());
 
@@ -92,14 +99,13 @@ public class GrammarServiceImpl implements GrammarService{
 
             //Se agregan las reglas cortadas y se elimina la original
             //Add(S --> aAb)
-            //Add(S --> aAc)
-            //Remove(S --> aAb|aAc)
-            rules.add(trimmedLeftRule);
             rules.add(trimmedRightRule);
+            //Add(S --> aAc)
+            rules.add(trimmedLeftRule);
+            //Remove(S --> aAb|aAc)
             rules.remove(ruleWithOr);
         }
-
-        return rules;
+        return listUtil.removeRepeatedItems(rules);
     }
 
     //Verifica si la variable inicial existe en las reglas
@@ -131,7 +137,7 @@ public class GrammarServiceImpl implements GrammarService{
 
     //Elimina el elemento vacío 'ε' de la cadena.
     private String replaceVoid(String str) {
-        return str.replace("ε","");
+        return str.length() > 1 ? str.replace("ε",""): str;
     }
 
     //Verificar si la cadena es válida.
