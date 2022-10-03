@@ -3,19 +3,17 @@ import edu.jarkvin.freegrammar.exception.BadRequestException;
 import edu.jarkvin.freegrammar.model.Grammar;
 import edu.jarkvin.freegrammar.exception.TimeOutException;
 import edu.jarkvin.freegrammar.model.Rule;
-import edu.jarkvin.freegrammar.util.CollectionUtils;
+
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.logging.Logger;
 
 import static edu.jarkvin.freegrammar.util.IntUtils.getRandomValue;
 import static edu.jarkvin.freegrammar.util.StringUtils.trimByChar;
 
 @Service
 public class GrammarServiceImpl implements GrammarService{
-
-    private static final CollectionUtils<String> collectionUtils = new CollectionUtils<>();
+    private Long startTime;
     private static final long MAX_TIME_IN_MILLS = 50000;
     private static final String TIMEOUT_EXCEPTION = "La petición ha tardado demasiado tiempo.";
 
@@ -25,8 +23,8 @@ public class GrammarServiceImpl implements GrammarService{
         Set<String> generatedStrings = new HashSet<>();
         String concatString;
 
-        //Obtener el tiempo actual
-        long startTime = System.currentTimeMillis();
+        //Obtener el tiempo actual en milisegundos.
+        startTime = System.currentTimeMillis();
 
         //Se valida que todas las reglas tengan el formato correcto
         grammar.getRules().forEach(r -> isValid(r.getString()));
@@ -35,21 +33,26 @@ public class GrammarServiceImpl implements GrammarService{
 
         //Itera hasta generar 'n' cadenas diferentes.
         while (generatedStrings.size() < quantity){
-            concatString = getInitialString(grammar.getInitVar(), grammar.getRules());
-
-            //Verifica si existe un no terminal en la cadena.
-            //Si existe lo reemplaza por una regla.
-            while (existsNoTerminal(concatString, grammar.getRules())){
-                concatString = getString(concatString, findRulesByString(concatString, grammar.getRules()));
-                //Si se alcanza el tiempo máximo por consulta lanza un timeout.
-                if((System.currentTimeMillis() - startTime) >= MAX_TIME_IN_MILLS) throw new TimeOutException(TIMEOUT_EXCEPTION);
-            }
-
-            concatString = replaceVoid(concatString);
+            concatString = getStringFromGrammar(grammar);
             generatedStrings.add(concatString);
         }
+        //Se ordena la lista de cadenas
+        return generatedStrings.stream().sorted(Comparator.reverseOrder()).toList();
+    }
 
-        return collectionUtils.toListAndSort(generatedStrings);
+    //Se obtiene una cadena a partir de la gramática
+    private String getStringFromGrammar(Grammar grammar) {
+        String concatString = getInitialString(grammar.getInitVar(), grammar.getRules());
+
+        //Verifica si existe un no terminal en la cadena.
+        //Si existe lo reemplaza por una regla.
+        while (existsNoTerminal(concatString, grammar.getRules())){
+            concatString = getStringFromRules(concatString, findRulesByString(concatString, grammar.getRules()));
+            //Si se alcanza el tiempo máximo por consulta lanza un timeout.
+            if((System.currentTimeMillis() - startTime) >= MAX_TIME_IN_MILLS) throw new TimeOutException(TIMEOUT_EXCEPTION);
+        }
+
+        return replaceVoid(concatString);
     }
 
     //Devuelve una regla aleatoria asociada a una variable inicial.
@@ -74,29 +77,27 @@ public class GrammarServiceImpl implements GrammarService{
             //Se filtran todas las reglas que contengan OR.
             rulesWithOr = rules.stream().filter(r -> r.getString().contains("|")).toList();
             //Se encuentra la primera regla con OR.
-            ruleWithOr = rulesWithOr.stream().findFirst().orElse(null);
+            ruleWithOr = rulesWithOr.stream().findFirst().orElse(new Rule());
 
             //Se consiguen los componentes del OR
-            left = ruleWithOr.getString().substring(0, ruleWithOr.getString().indexOf("|"));
-            right = ruleWithOr.getString().substring(ruleWithOr.getString().indexOf("|") + 1);
+            left = ruleWithOr.getString().
+                    substring(0, ruleWithOr.getString().indexOf("|"));
+            right = ruleWithOr.getString()
+                    .substring(ruleWithOr.getString().indexOf("|") + 1);
 
             //Se crea una nueva regla con el componente a la izquierda del OR.
-            Rule trimmedRuleLeft= new Rule();
-            trimmedRuleLeft.setVariable(ruleWithOr.getVariable());
-            trimmedRuleLeft.setString(left);
-
+            Rule trimmedLeftRule= new Rule(ruleWithOr.getVariable(), left);
             //Se crea una nueva regla con el componente a la derecha del OR.
-            Rule trimmedRuleRight = new Rule();
-            trimmedRuleRight.setVariable(ruleWithOr.getVariable());
-            trimmedRuleRight.setString(right);
+            Rule trimmedRightRule = new Rule(ruleWithOr.getVariable(), right);
 
-            rules.add(trimmedRuleLeft);
-            rules.add(trimmedRuleRight);
+            //Se agregan las reglas cortadas y se elimina la original
+            //Add(S --> aAb)
+            //Add(S --> aAc)
+            //Remove(S --> aAb|aAc)
+            rules.add(trimmedLeftRule);
+            rules.add(trimmedRightRule);
             rules.remove(ruleWithOr);
         }
-
-//        Logger logger = Logger.getLogger("rule");
-//        rules.forEach(r -> logger.info(r.toString()));
 
         return rules;
     }
@@ -107,7 +108,7 @@ public class GrammarServiceImpl implements GrammarService{
     }
 
     //Devuelve un regla asociada a una variable.
-    private String getString(String str, List<Rule> rules) {
+    private String getStringFromRules(String str, List<Rule> rules) {
         Rule rule = rules.get(getRandomValue(rules.size()));
         str = str.replaceFirst(rule.getVariable(), rule.getString());
         return isValid(str);
@@ -135,12 +136,16 @@ public class GrammarServiceImpl implements GrammarService{
 
     //Verificar si la cadena es válida.
     private String isValid(String str) {
+        if(!(str.equals(trimByChar(trimByChar(str, "("),")")))){
+            throw new BadRequestException("El formato de '"+str+"' no es soportado.");
+        }
         if(!str.equals(trimByChar(str,"|"))){
             throw new BadRequestException("El formato de '"+str+"' no es soportado.");
         }
         if (str.equals("")){
             throw new BadRequestException("La regla no puede estar vacía.");
         }
+
         return str;
     }
 }
