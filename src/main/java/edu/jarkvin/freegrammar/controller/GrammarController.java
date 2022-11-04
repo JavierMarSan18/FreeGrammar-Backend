@@ -19,6 +19,7 @@ public class GrammarController {
     private GrammarService service;
 
     @PostMapping("/strings")
+    @CrossOrigin("*")
     public ResponseEntity<List<String>> getStrings(@PathParam(value = "n") Integer n , @Valid @RequestBody Grammar grammar){
         return new ResponseEntity<>(service.generateStrings(n, grammar), HttpStatus.CREATED);
     }
