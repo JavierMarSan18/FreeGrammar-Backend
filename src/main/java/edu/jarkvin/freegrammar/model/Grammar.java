@@ -2,15 +2,11 @@ package edu.jarkvin.freegrammar.model;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 public class Grammar {
-
-    @NotNull(message = "La cantidad de palabras no puede estar vacía.")
-    private Integer numPalabras;
     @NotBlank(message = "La variable inicial no puede estar vacía.")
     private String initVar;
     @NotEmpty(message = "Las reglas no puede estar vacías.")
@@ -25,14 +21,6 @@ public class Grammar {
         this.rules = rules;
     }
 
-
-    public Integer getNumPalabras() {
-        return numPalabras;
-    }
-
-    public void setNumPalabras(Integer numPalabras) {
-        this.numPalabras = numPalabras;
-    }
 
     public String getInitVar() {
         return initVar;
@@ -54,6 +42,11 @@ public class Grammar {
         this.rules.add(rule);
     }
 
+    public void addIfExists(Rule rule){
+        if (!rules.contains(rule)){
+            rules.add(rule);
+        }
+    }
 
     @Override
     public boolean equals(Object o) {

@@ -21,12 +21,11 @@ public class GrammarServiceImpl implements GrammarService{
 
     //Genera n cadenas dependiendo de las reglas que se proporcionen.
     @Override
-    public List<String> generateStrings(Grammar grammar) {
+    public List<String> generateStrings(Integer quantity, Grammar grammar) {
         Set<String> generatedStrings = new HashSet<>();
         String concatString;
         //Si la cantidad es nula, menor o igual a 0, por defecto se retornara 1 cadena.
 //        quantity = quantity != null && quantity > 0 ? quantity: 1;
-
 
         //Obtener el tiempo actual en milisegundos.
         startTime = System.currentTimeMillis();
@@ -39,7 +38,7 @@ public class GrammarServiceImpl implements GrammarService{
         grammar.setRules(trimRulesByOr(grammar.getRules()));
 
         //Itera hasta generar 'n' cadenas diferentes.
-        while (generatedStrings.size() < grammar.getNumPalabras()){
+        while (generatedStrings.size() < quantity){
             concatString = getStringFromGrammar(grammar);
             generatedStrings.add(concatString);
         }

@@ -37,7 +37,6 @@ public class GrammarControllerTest {
         secondRule.setString("b|c");
 
         Grammar grammar = new Grammar();
-        grammar.setNumPalabras(2);
         grammar.setInitVar("S");
         grammar.addRule(firstRule);
         grammar.addRule(secondRule);
@@ -48,7 +47,7 @@ public class GrammarControllerTest {
 
         ResponseEntity<List<String>> response = new ResponseEntity<>(words, HttpStatus.CREATED);
 
-        when(service.generateStrings(grammar)).thenReturn(words);
-        Assert.assertEquals(response, controller.getStrings(grammar));
+        when(service.generateStrings(2,grammar)).thenReturn(words);
+        Assert.assertEquals(response, controller.getStrings(2, grammar));
     }
 }
