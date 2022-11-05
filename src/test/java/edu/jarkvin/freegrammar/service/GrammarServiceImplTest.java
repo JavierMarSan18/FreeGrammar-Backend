@@ -41,6 +41,7 @@ public class GrammarServiceImplTest {
         thirdRule.setString("c");
 
         grammar.setInitVar("S");
+        grammar.setNumPalabras(2);
         grammar.addRule(firstRule);
         grammar.addRule(secondRule);
         grammar.addRule(thirdRule);
@@ -48,7 +49,7 @@ public class GrammarServiceImplTest {
         words.add("acb");
         words.add("abb");
 
-        Assert.assertEquals(words , service.generateStrings(2 , grammar));
+        Assert.assertEquals(words , service.generateStrings(grammar));
     }
 
     @Test
@@ -66,6 +67,6 @@ public class GrammarServiceImplTest {
         words.add("acb");
         words.add("abb");
 
-        Assert.assertEquals(words , service.generateStrings(2 , grammar));
+        Assert.assertEquals(words , service.generateStrings(grammar));
     }
 }
